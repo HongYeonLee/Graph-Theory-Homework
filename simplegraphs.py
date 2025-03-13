@@ -167,5 +167,3 @@ def is_edge_connected(n, edges):
 
     # Step 5: If any bridges were found, return False (graph is not edge-connected)
     return len(bridges) == 0
-
-
