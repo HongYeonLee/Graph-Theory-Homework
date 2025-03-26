@@ -33,6 +33,10 @@ def is_isomorphism(n, edges1, edges2, bij):
     if len(edges1) != len(edges2):
         return False
 
+    for b in bij:
+        if b >= n:
+            return False
+
     for u, v in edges1:
         u_mapped = bij[u]
         v_mapped = bij[v]
