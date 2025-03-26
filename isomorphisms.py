@@ -29,9 +29,14 @@
 def is_isomorphism(n, edges1, edges2, bij):
     if len(bij) != n or len(set(bij)) != n:
         return False
+
+    if len(edges1) != len(edges2):
+        return False
+
     for u, v in edges1:
         u_mapped = bij[u]
         v_mapped = bij[v]
         if (u_mapped, v_mapped) not in edges2 and (v_mapped, u_mapped) not in edges2:
             return False
+
     return True
