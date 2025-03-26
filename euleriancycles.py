@@ -27,41 +27,41 @@ from typing import Any, List, Tuple, Optional, Set
 
 
 def is_eulerian(n, edges):
-    from collections import defaultdict, deque
-
     if not edges:
         return True
 
-    graph = defaultdict(set)
+    adj = [[] for _ in range(n)]
     degree = [0] * n
-
     for u, v in edges:
-        graph[u].add(v)
-        graph[v].add(u)
+        adj[u].append(v)
+        adj[v].append(u)
         degree[u] += 1
         degree[v] += 1
 
-    if any(d % 2 != 0 for d in degree):
-        return False
+    count = 0
+    visited = [False] * n
 
-    def is_connected():
-        start = next((i for i in range(n) if degree[i] > 0), None)
-        if start is None:
-            return True
+    def dfs(u):
+        visited[u] = True
+        for v in adj[u]:
+            if not visited[v]:
+                dfs(v)
 
-        visited = set()
-        queue = deque([start])
+    for i in range(n):
+        if degree[i] > 0:
+            dfs(i)
+            break
 
-        while queue:
-            node = queue.popleft()
-            if node in visited:
-                continue
-            visited.add(node)
-            queue.extend(graph[node] - visited)
+    for i in range(n):
+        if degree[i] > 0 and not visited[i]:
+            return False
 
-        return len(visited) == sum(1 for d in degree if d > 0)
+    odd_degree_count = 0
+    for d in degree:
+        if d % 2 != 0:
+            odd_degree_count += 1
 
-    return is_connected()
+    return odd_degree_count == 0
 
 
 # Problem 2
@@ -92,48 +92,40 @@ def is_eulerian(n, edges):
 from collections import defaultdict
 
 
-def find_eulerian_cycle(n, edges):
-    from collections import defaultdict
-
-    graph = defaultdict(list)
-    for u, v in edges:
-        graph[u].append(v)
-        graph[v].append(u)
-
-    for vertex in graph:
-        if len(graph[vertex]) % 2 != 0:
-            return None  # If any vertex has an odd degree, it can't be Eulerian
-
-    def find_cycle(start):
-        stack = [start]
-        cycle = []
-
-        while stack:
-            v = stack[-1]
-            if graph[v]:
-                u = graph[v].pop()
-                graph[u].remove(v)
-                stack.append(u)
-            else:
-                cycle.append(stack.pop())
-        return cycle
-
-    start_vertex = next(iter(graph))
-    cycle = find_cycle(start_vertex)
-
-    # Ensure all edges are used (graph should be empty after cycle is found)
-    for v in graph:
-        if graph[v]:
-            return None
-
-    if len(cycle) == len(edges) + 1:  # Eulerian cycle condition
-        cycle.pop()
-
-    # Check if the cycle starts and ends at the same vertex
-    if cycle[0] != cycle[-1]:
+def find_eulerian_cycle(m, edges):
+    if not is_eulerian(m, edges):
         return None
 
-    return cycle
+    adj = [[] for _ in range(m)]
+    edge_counts = {}
+    for u, v in edges:
+        adj[u].append(v)
+        adj[v].append(u)
+        edge_counts[(min(u, v), max(u, v))] = edge_counts.get((min(u, v), max(u, v)), 0) + 1
+
+    stack = [0]
+    cycle = []
+    while stack:
+        u = stack[-1]
+        if adj[u]:
+            v = adj[u].pop()
+            adj[v].remove(u)
+            edge_key = (min(u, v), max(u, v))
+            edge_counts[edge_key] -= 1
+            if edge_counts[edge_key] == 0:
+                del edge_counts[edge_key]
+            stack.append(v)
+        else:
+            cycle.append(stack.pop())
+
+    if len(cycle) - 1 != len(edges):
+        return None
+
+    result = []
+    for i in range(len(cycle) - 1):
+        result.append(cycle[i])
+
+    return result[::-1]
 
 
 # Problem 3
@@ -164,18 +156,27 @@ def find_eulerian_cycle(n, edges):
 # For clarification, an Eulerian cycle is a length of length = len(edges)
 # consisting of vertices, each 0 <= v < n, possibly having some vertices
 # repeating, and possibly omitting some vertices.
-from collections import Counter
 
 
 def is_eulerian_cycle(n, edges, cycle):
-    if cycle is None or len(cycle) == 0:
-        return False  # or raise an appropriate exception if needed
+    if not edges:
+        return len(cycle) == 1 and cycle[0] == 0
 
-    # Count the occurrences of each edge in the graph
-    edge_count = Counter(tuple(sorted(edge)) for edge in edges)
+    if not cycle:
+        return False
 
-    # Count the occurrences of each edge in the cycle
-    cycle_count = Counter(tuple(sorted((cycle[i], cycle[(i + 1) % len(cycle)]))) for i in range(len(cycle)))
+    edge_counts = {}
+    for u, v in edges:
+        edge_counts[(min(u, v), max(u, v))] = edge_counts.get((min(u, v), max(u, v)), 0) + 1
 
-    # Ensure that the cycle visits every edge of the graph exactly once
-    return all(cycle_count[edge] == edge_count[edge] for edge in cycle_count) and len(cycle) == len(edges)
+    cycle_edge_counts = {}
+    for i in range(len(cycle) - 1):
+        u, v = cycle[i], cycle[i + 1]
+        cycle_edge_counts[(min(u, v), max(u, v))] = cycle_edge_counts.get((min(u, v), max(u, v)), 0) + 1
+    u, v = cycle[-1], cycle[0]
+    cycle_edge_counts[(min(u, v), max(u, v))] = cycle_edge_counts.get((min(u, v), max(u, v)), 0) + 1
+
+    if len(edges) != len(cycle):
+        return False
+
+    return edge_counts == cycle_edge_counts
