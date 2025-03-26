@@ -94,7 +94,7 @@ from collections import defaultdict
 
 def find_eulerian_cycle(m, edges):
     if not is_eulerian(m, edges):
-        return []
+        return None
 
     adj = [[] for _ in range(m)]
     edge_counts = {}
@@ -119,7 +119,7 @@ def find_eulerian_cycle(m, edges):
             cycle.append(stack.pop())
 
     if len(cycle) - 1 != len(edges):
-        return []
+        return None
 
     result = []
     for i in range(len(cycle) - 1):
