@@ -24,6 +24,8 @@ from typing import Any, List, Tuple, Optional, Set
 # an Eulerian cycle (i.e., a cycle that visits each edge
 # exactly once), and False otherwise. Note that a graph with
 # no edge is Eulerian (an empty cycle will visit all edges).
+
+
 def is_eulerian(n, edges):
     from collections import defaultdict, deque
 
