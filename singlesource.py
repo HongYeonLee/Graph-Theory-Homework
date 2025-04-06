@@ -4,8 +4,9 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 import math
+from typing import List, Tuple, Optional
+import heapq
 
 # Problem 1
 #
@@ -27,10 +28,9 @@ import math
 # non-vertex, or if it contains two adjacent elements which do
 # not designate an edge. E.g., if the edges are {(1,2),(2,3),(2,4)},
 # then [1,2,4] is a valid path, but [3,2,4] is not.
-from typing import List, Tuple, Optional
 
 
-def find_path_distance(n: int, edges: List[Tuple[int, int, int]], path: List[int]) -> Optional[int]:
+def find_path_distance(n, edges, path):
     if not path:
         return None
 
@@ -38,18 +38,18 @@ def find_path_distance(n: int, edges: List[Tuple[int, int, int]], path: List[int
         if not (0 <= vertex < n):
             return None
 
-    adjacency_list = {}
+    adj = {}
     for u, v, w in edges:
-        if u not in adjacency_list:
-            adjacency_list[u] = []
-        adjacency_list[u].append((v, w))
+        if u not in adj:
+            adj[u] = []
+        adj[u].append((v, w))
 
     total_distance = 0
     for i in range(len(path) - 1):
         u, v = path[i], path[i + 1]
         found_edge = False
-        if u in adjacency_list:
-            for neighbor, weight in adjacency_list[u]:
+        if u in adj:
+            for neighbor, weight in adj[u]:
                 if neighbor == v:
                     total_distance += weight
                     found_edge = True
@@ -58,6 +58,7 @@ def find_path_distance(n: int, edges: List[Tuple[int, int, int]], path: List[int
             return None
 
     return total_distance
+
 
 
 # Problem 2
@@ -84,10 +85,9 @@ def find_path_distance(n: int, edges: List[Tuple[int, int, int]], path: List[int
 # Your function should return None if the graph has a negative
 # weight cycle, otherwise it should return a list dist such that
 # dist[v] is the distance of the shortest path from src to v.
-import heapq
 
 
-def single_source_distances(n: int, edges: List[Tuple[int, int, int]], src: int) -> Optional[List[float]]:
+def single_source_distances_undirected(n, edges, src):
     adj = [[] for _ in range(n)]
     for u, v, w in edges:
         adj[u].append((v, w))
@@ -95,7 +95,7 @@ def single_source_distances(n: int, edges: List[Tuple[int, int, int]], src: int)
 
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]  # (distance, vertex)
+    pq = [(0, src)]
 
     while pq:
         d, u = heapq.heappop(pq)
@@ -137,14 +137,14 @@ def single_source_distances(n: int, edges: List[Tuple[int, int, int]], src: int)
 # vertex, then dist[v] should be math.inf.
 
 
-def single_source_distances(n: int, edges: List[Tuple[int, int, int]], src: int) -> Optional[List[float]]:
+def single_source_distances_directed(n, edges, src):
     adj = [[] for _ in range(n)]
     for u, v, w in edges:
         adj[u].append((v, w))
 
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]  # (distance, vertex)
+    pq = [(0, src)]
 
     while pq:
         d, u = heapq.heappop(pq)
@@ -190,16 +190,14 @@ def single_source_distances(n: int, edges: List[Tuple[int, int, int]], src: int)
 # the shortest path from src to dst.  So the first element of
 # the returned list must be src, and the final element
 # should be dst.
-
-
-def shortest_path(n: int, edges: List[Tuple[int, int, int]], src: int, dst: int) -> Optional[List[int]]:
+def shortest_path(n, edges, src, dst):
     adj = [[] for _ in range(n)]
     for u, v, w in edges:
         adj[u].append((v, w))
 
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]  # (distance, vertex)
+    pq = [(0, src)]
     parent = [-1] * n
 
     while pq:
