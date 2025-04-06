@@ -58,9 +58,6 @@ def find_path_distance(n, edges, path):
             return None
 
     return total_distance
-
-
-
 # Problem 2
 #
 # Single source shortest paths on weighted, UNDIRECTED graph
@@ -88,25 +85,26 @@ def find_path_distance(n, edges, path):
 
 
 def single_source_distances_undirected(n, edges, src):
-    adj = [[] for _ in range(n)]
-    for u, v, w in edges:
-        adj[u].append((v, w))
-        adj[v].append((u, w))
-
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]
 
-    while pq:
-        d, u = heapq.heappop(pq)
+    directed_edges = []
+    for u, v, w in edges:
+        directed_edges.append((u, v, w))
+        directed_edges.append((v, u, w))
 
-        if d > dist[u]:
-            continue
+    for _ in range(n - 1):
+        updated = False
+        for u, v, w in directed_edges:
+            if dist[u] != math.inf and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                updated = True
+        if not updated:
+            break
 
-        for v, weight in adj[u]:
-            if dist[u] + weight < dist[v]:
-                dist[v] = dist[u] + weight
-                heapq.heappush(pq, (dist[v], v))
+    for u, v, w in directed_edges:
+        if dist[u] != math.inf and dist[u] + w < dist[v]:
+            return None
 
     return dist
 
@@ -138,24 +136,21 @@ def single_source_distances_undirected(n, edges, src):
 
 
 def single_source_distances_directed(n, edges, src):
-    adj = [[] for _ in range(n)]
-    for u, v, w in edges:
-        adj[u].append((v, w))
-
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]
 
-    while pq:
-        d, u = heapq.heappop(pq)
+    for _ in range(n - 1):
+        updated = False
+        for u, v, w in edges:
+            if dist[u] != math.inf and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                updated = True
+        if not updated:
+            break
 
-        if d > dist[u]:
-            continue
-
-        for v, weight in adj[u]:
-            if dist[u] + weight < dist[v]:
-                dist[v] = dist[u] + weight
-                heapq.heappush(pq, (dist[v], v))
+    for u, v, w in edges:
+        if dist[u] != math.inf and dist[u] + w < dist[v]:
+            return None
 
     return dist
 
@@ -190,6 +185,8 @@ def single_source_distances_directed(n, edges, src):
 # the shortest path from src to dst.  So the first element of
 # the returned list must be src, and the final element
 # should be dst.
+
+
 def shortest_path(n, edges, src, dst):
     adj = [[] for _ in range(n)]
     for u, v, w in edges:
