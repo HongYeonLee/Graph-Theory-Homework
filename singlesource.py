@@ -188,33 +188,30 @@ def single_source_distances_directed(n, edges, src):
 
 
 def shortest_path(n, edges, src, dst):
-    adj = [[] for _ in range(n)]
-    for u, v, w in edges:
-        adj[u].append((v, w))
-
     dist = [math.inf] * n
     dist[src] = 0
-    pq = [(0, src)]
     parent = [-1] * n
 
-    while pq:
-        d, u = heapq.heappop(pq)
-
-        if d > dist[u]:
-            continue
-
-        if u == dst:
-            path = []
-            curr = dst
-            while curr != -1:
-                path.append(curr)
-                curr = parent[curr]
-            return path[::-1]
-
-        for v, weight in adj[u]:
-            if dist[u] + weight < dist[v]:
-                dist[v] = dist[u] + weight
+    for _ in range(n - 1):
+        updated = False
+        for u, v, w in edges:
+            if dist[u] != math.inf and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
                 parent[v] = u
-                heapq.heappush(pq, (dist[v], v))
+                updated = True
+        if not updated:
+            break
 
-    return None
+    for u, v, w in edges:
+        if dist[u] != math.inf and dist[u] + w < dist[v]:
+            return None  # Negative weight cycle
+
+    if dist[dst] == math.inf:
+        return None  # No path
+
+    path = []
+    curr = dst
+    while curr != -1:
+        path.append(curr)
+        curr = parent[curr]
+    return path[::-1]
