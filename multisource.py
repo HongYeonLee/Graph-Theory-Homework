@@ -70,10 +70,13 @@ class op_min_t(op_count):
         super().__call__()
         return min(v1, v2)
 
+
 class op_max_t(op_count):
     @staticmethod
     def neutral():
-        return 0.0
+        from math import inf
+        return -inf
+
     def __call__(self, v1, v2):
         super().__call__()
         return max(v1, v2)
@@ -194,7 +197,6 @@ def connected_to(n, edges, src):
 #
 # These exercises were prepared by Philipp Schlehuber-Caissier
 # (philipp@lrde.epita.fr).
-import math
 
 
 def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
