@@ -204,7 +204,7 @@ def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
         if hasattr(e_times, 'neutral'):
             dist[i][i] = e_times.neutral()
         else:
-            dist[i][i] = e_times # 중립 원소 값(int 또는 float)을 직접 사용
+            dist[i][i] = e_times
 
     for u, v, w in edges:
         dist[u][v] = w
