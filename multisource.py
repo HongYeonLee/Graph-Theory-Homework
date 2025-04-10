@@ -5,6 +5,13 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+아, 죄송합니다. public 테스트 내용은 수정하면 안 된다는 점을 간과했습니다. 그렇다면 floyd_warshall_2 함수 자체를 수정하여 테스트에서 전달되는 정수 또는 float 중립 원소 값을 처리하도록 해야 합니다.
+
+floyd_warshall_2 함수 수정:
+
+Python
+
+import math
 
 class op_count(object):
     def __init__(self):
@@ -63,8 +70,7 @@ class op_or_t(op_count):
 class op_min_t(op_count):
     @staticmethod
     def neutral():
-        from math import inf
-        return inf
+        return float('inf')
 
     def __call__(self, v1, v2):
         super().__call__()
@@ -74,8 +80,7 @@ class op_min_t(op_count):
 class op_max_t(op_count):
     @staticmethod
     def neutral():
-        from math import inf
-        return -inf
+        return float('-inf')
 
     def __call__(self, v1, v2):
         super().__call__()
@@ -202,7 +207,11 @@ def connected_to(n, edges, src):
 def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
     dist = [[e_plus] * n for _ in range(n)]
     for i in range(n):
-        dist[i][i] = e_times.neutral() if hasattr(e_times, 'neutral') else (0 if op_times == op_add else (math.inf if op_times == op_min else (-math.inf if op_times == op_max else e_plus)))
+        if hasattr(e_times, 'neutral'):
+            dist[i][i] = e_times.neutral()
+        else:
+            dist[i][i] = e_times # 중립 원소 값(int 또는 float)을 직접 사용
+
     for u, v, w in edges:
         dist[u][v] = w
 
@@ -213,6 +222,7 @@ def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
                 dist[i][j] = op_plus(dist[i][j], term2)
 
     return dist
+
 
 # Problem 3
 #
