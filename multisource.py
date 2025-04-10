@@ -200,24 +200,19 @@ def connected_to(n, edges, src):
 
 
 def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
-    M = [[e_plus for _ in range(n)] for _ in range(n)]
-
+    dist = [[e_plus] * n for _ in range(n)]
     for i in range(n):
-        M[i][i] = e_times
-
-    for src, dst, weight in edges:
-        M[src][dst] = weight
+        dist[i][i] = e_times.neutral() if hasattr(e_times, 'neutral') else (0 if op_times == op_add else (math.inf if op_times == op_min else (-math.inf if op_times == op_max else e_plus)))
+    for u, v, w in edges:
+        dist[u][v] = w
 
     for k in range(n):
         for i in range(n):
             for j in range(n):
-                term1 = M[i][j]
-                term2 = op_times(M[i][k], M[k][j])
-                M[i][j] = op_plus(term1, term2)
+                term2 = op_times(dist[i][k], dist[k][j])
+                dist[i][j] = op_plus(dist[i][j], term2)
 
-    return M
-
-
+    return dist
 
 # Problem 3
 #
