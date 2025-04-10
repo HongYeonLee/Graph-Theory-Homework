@@ -64,7 +64,8 @@ class op_or_t(op_count):
 class op_min_t(op_count):
     @staticmethod
     def neutral():
-        return float('inf')
+        from math import inf
+        return inf
 
     def __call__(self, v1, v2):
         super().__call__()
@@ -74,7 +75,8 @@ class op_min_t(op_count):
 class op_max_t(op_count):
     @staticmethod
     def neutral():
-        return float('-inf')
+        from math import inf
+        return -inf
 
     def __call__(self, v1, v2):
         super().__call__()
@@ -87,6 +89,7 @@ op_min = op_min_t()
 op_max = op_max_t()
 op_and = op_and_t()
 op_or = op_or_t()
+
 
 # Problem 1
 #
@@ -120,14 +123,15 @@ def connected_to(n, edges, src):
     connected_vertices = [src]
 
     while queue:
-        curr = queue.pop(0)
-        for neighbor in adj[curr]:
-            if not visited[neighbor]:
-                visited[neighbor] = True
-                queue.append(neighbor)
-                connected_vertices.append(neighbor)
+        u = queue.pop(0)
+        for v in adj[u]:
+            if not visited[v]:
+                visited[v] = True
+                connected_vertices.append(v)
+                queue.append(v)
 
     return connected_vertices
+
 
 # Problem 2
 #
@@ -201,20 +205,17 @@ def connected_to(n, edges, src):
 def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
     dist = [[e_plus] * n for _ in range(n)]
     for i in range(n):
-        if hasattr(e_times, 'neutral'):
-            dist[i][i] = e_times.neutral()
-        else:
-            dist[i][i] = e_times
+        dist[i][i] = e_times.neutral() if callable(e_times.neutral) else e_times
 
     for u, v, w in edges:
-        dist[u][v] = w
+        dist[u][v] = op_plus(dist[u][v], w)
 
     for k in range(n):
         for i in range(n):
             for j in range(n):
+                term1 = dist[i][j]
                 term2 = op_times(dist[i][k], dist[k][j])
-                dist[i][j] = op_plus(dist[i][j], term2)
-
+                dist[i][j] = op_plus(term1, term2)
     return dist
 
 
@@ -272,22 +273,20 @@ def floyd_warshall_3(n, edges, op_plus, e_plus, op_times, e_times):
     succ = [[None] * n for _ in range(n)]
 
     for i in range(n):
-        dist[i][i] = e_times.neutral() if hasattr(e_times, 'neutral') else 0
-        succ[i][i] = i
+        dist[i][i] = e_times.neutral() if callable(e_times.neutral) else e_times
+
     for u, v, w in edges:
-        dist[u][v] = w
+        dist[u][v] = op_plus(dist[u][v], w)
         succ[u][v] = v
 
     for k in range(n):
         for i in range(n):
             for j in range(n):
-                term1 = dist[i][j]
-                term2 = op_times(dist[i][k], dist[k][j])
-                new_dist = op_plus(term1, term2)
+                through_k = op_times(dist[i][k], dist[k][j])
+                new_dist = op_plus(dist[i][j], through_k)
                 if new_dist != dist[i][j]:
                     dist[i][j] = new_dist
                     succ[i][j] = succ[i][k]
-
     return dist, succ
 
 
@@ -325,18 +324,19 @@ def path(Succ, source, destination):
 
 
 def safest_path(n, edges, source, destination):
-    def op_max_probability(p1, p2):
-        return max(p1, p2)
+    def op_max_mul(v1, v2):
+        return v1 * v2
 
-    class op_mul_probability(op_count):
+    class OpMaxMul:
         @staticmethod
         def neutral():
             return 1.0
 
         def __call__(self, v1, v2):
-            super().__call__()
-            return v1 * v2
+            return op_max_mul(v1, v2)
 
-    op_times_prob = op_mul_probability()
-    M, D = floyd_warshall_3(n, edges, op_max_probability, 0.0, op_times_prob, op_times_prob)
-    return path(D, source, destination)
+    op_safest_plus = op_max_t()
+    op_safest_times = OpMaxMul()
+
+    dist, succ = floyd_warshall_3(n, edges, op_safest_plus, 0.0, op_safest_times, 1.0)
+    return path(succ, source, destination)
