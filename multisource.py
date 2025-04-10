@@ -209,9 +209,8 @@ def floyd_warshall_2(n, edges, op_plus, e_plus, op_times, e_times):
     for k in range(n):
         for i in range(n):
             for j in range(n):
-                term1 = dist[i][j]
                 term2 = op_times(dist[i][k], dist[k][j])
-                dist[i][j] = op_plus(term1, term2)
+                dist[i][j] = op_plus(dist[i][j], term2)
 
     return dist
 
