@@ -136,22 +136,20 @@ def is_augmenting_path(n, edges, matching, path):
     if len(path) < 2:
         return False
     matched = {v for u, v in matching} | {u for u, v in matching}
-    if path[0] in matched and path[-1] in matched:
+    if path[0] in matched or path[-1] in matched:
         return False
+    normalized_edges = {tuple(sorted(e)) for e in edges}
+    normalized_matching = {tuple(sorted(m)) for m in matching}
     for i in range(len(path) - 1):
         u, v = path[i], path[i + 1]
-        norm_edge = nedge((u, v))
-        is_in_edges = norm_edge in [nedge(e) for e in edges]
-        is_in_matching = norm_edge in [nedge(m) for m in matching]
-        if i % 2 == 0:
-            if is_in_matching:
+        normalized_path_edge = tuple(sorted((u, v)))
+        if normalized_path_edge not in normalized_edges:
+            return False
+        if i % 2 == 0:  # Unmatched edge
+            if normalized_path_edge in normalized_matching:
                 return False
-            if not is_in_edges:
-                return False
-        else:
-            if not is_in_matching:
-                return False
-            if not is_in_edges:
+        else:  # Matched edge
+            if normalized_path_edge not in normalized_matching:
                 return False
     return True
 
